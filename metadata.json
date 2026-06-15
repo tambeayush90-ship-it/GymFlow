@@ -1,0 +1,6 @@
+{
+  "name": "Gym Flow",
+  "description": "A modern gym management application for gym owners to manage memberships, attendance, subscriptions, payments, reports, and customer records.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
