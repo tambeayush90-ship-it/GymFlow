@@ -1242,9 +1242,16 @@ export default function App() {
         </div> {/* closing Scrollable Mobile Content canvas area */}
 
         {/* Floating/Fixed Bottom Navigation bar */}
-        <div id="mobile-tab-bar" className={`border-t h-16 grid grid-cols-5 items-center justify-items-center shrink-0 z-40 select-none shadow-md ${
-          darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-white border-zinc-200 text-zinc-650'
-        }`}>
+        <div 
+          id="mobile-tab-bar" 
+          className={`border-t grid grid-cols-5 items-center justify-items-center shrink-0 z-40 select-none shadow-md transition-all ${
+            darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-400' : 'bg-white border-zinc-200 text-zinc-650'
+          }`}
+          style={{
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 18px)',
+            paddingTop: '10px',
+          }}
+        >
           <button
             id="tab-btn-dash"
             onClick={() => setActiveTab('dashboard')}
