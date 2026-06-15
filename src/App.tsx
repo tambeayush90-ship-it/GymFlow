@@ -605,22 +605,9 @@ export default function App() {
   return (
     <div className={`min-h-screen h-[100dvh] overflow-hidden flex items-center justify-center p-0 md:p-6 font-sans transition-colors duration-150 ${darkMode ? 'bg-zinc-950 text-zinc-100' : 'bg-zinc-100 text-zinc-900'}`}>
       
-      {/* Physical Hardware Phone Frame Wrapper */}
-      <div className="relative w-full h-full md:w-[412px] md:h-[840px] md:max-h-[92vh] md:rounded-[44px] md:border-[10px] md:border-zinc-900 dark:md:border-zinc-805 md:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden bg-zinc-50 dark:bg-zinc-950 flex flex-col transition-colors duration-150">
+      {/* Clean Mobile-Optimized Standalone App Shell */}
+      <div className="relative w-full h-full md:w-[420px] md:h-[860px] md:max-h-[94vh] md:rounded-[36px] md:border md:border-zinc-200 dark:md:border-zinc-850 md:shadow-[0_20px_50px_rgba(0,0,0,0.35)] overflow-hidden bg-zinc-50 dark:bg-zinc-950 flex flex-col transition-colors duration-150">
         
-        {/* Notch cutout */}
-        <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-zinc-900 dark:bg-zinc-805 rounded-b-2xl z-50"></div>
-        
-        {/* Simulated top operating system status bar */}
-        <div className="h-8 px-6 pt-1 flex justify-between items-center text-[10px] font-mono font-bold select-none shrink-0 z-40 bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200/45 dark:border-zinc-800/45 text-zinc-650 dark:text-zinc-400">
-          <span>{currentTimeStr}</span>
-          <div className="flex items-center space-x-1">
-            <span>📶</span>
-            <span>5G</span>
-            <span className="ml-1">🔋 98%</span>
-          </div>
-        </div>
-
         {/* Top Mobile Header */}
         <header className={`border-b ${darkMode ? 'bg-zinc-900/40 border-zinc-900' : 'bg-white border-zinc-200'} shrink-0 p-3 px-4 flex items-center justify-between z-40 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-md`}>
           <div className="flex items-center space-x-2 select-none">
@@ -1308,15 +1295,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* Physical Home Indicator Overlay */}
-        <div className="hidden md:block absolute bottom-1 left-1/2 -translate-x-1/2 w-28 h-1 bg-zinc-400 dark:bg-zinc-700/60 rounded-full z-50 opacity-40"></div>
-
-      </div> {/* closing Smartphone Chassis frame */}
-
-      {/* FOOTER credit lines (outside the phone) */}
-      <div className="hidden lg:block absolute bottom-2 right-4 text-right text-[10px] text-zinc-400 font-mono select-none opacity-60">
-        <p>Gym Flow Pro v2.5 Mobile Simulator</p>
-      </div>
+      </div> {/* closing Mobile-Optimized Standalone App Shell */}
 
       {/* -------------------- DYNAMIC MODALS -------------------- */}
 
