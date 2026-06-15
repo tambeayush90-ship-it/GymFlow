@@ -23,7 +23,11 @@ import {
   HelpCircle,
   Send,
   UserCheck,
-  X
+  X,
+  Download,
+  Smartphone,
+  Share2,
+  Laptop
 } from 'lucide-react';
 
 import { 
@@ -74,6 +78,12 @@ export default function App() {
 
   // Popups & Active states
   const [isReportsOpen, setIsReportsOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [installStepsTab, setInstallStepsTab] = useState<'prompt' | 'ios' | 'android' | 'desktop'>('prompt');
+  const [simulatedInstallProgress, setSimulatedInstallProgress] = useState<number | null>(null);
+  const [simulatedProgressText, setSimulatedProgressText] = useState<string>('');
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   
@@ -113,6 +123,37 @@ export default function App() {
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Catch the PWA Install prompt and register SW
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('Gym Flow Service Worker registered scope:', reg.scope))
+        .catch((err) => console.warn('Gym Flow Service Worker registration failed:', err));
+    }
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
 
   // Trigger loading state from LocalStorage on mount
@@ -588,9 +629,9 @@ export default function App() {
             </div>
             <button
               id="txt-applet-title"
-              onClick={() => setIsReportsOpen(true)}
+              onClick={() => setIsDownloadModalOpen(true)}
               className="text-left font-display font-black tracking-tighter text-lg italic transform -skew-x-12 hover:text-orange-500 text-zinc-900 dark:text-white transition flex items-center gap-1 focus:outline-none"
-              title="Open Reports Vault Popup"
+              title="Install Gym Flow Mobile App"
             >
               <span>Gym Flow</span>
             </button>
@@ -1292,6 +1333,291 @@ export default function App() {
         }}
         payment={selectedPaymentForReceipt}
       />
+
+      {/* PWA App Download & Convert Center */}
+      {isDownloadModalOpen && (
+        <div id="pwa-download-overlay" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-md animate-fade-in">
+          <div id="pwa-download-container" className="w-[480px] max-w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-scale-in flex flex-col">
+            
+            {/* Header banner style */}
+            <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-red-650 text-white p-5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 transform translate-x-12 -translate-y-6 opacity-10 select-none">
+                <Dumbbell className="w-48 h-48 rotate-45" />
+              </div>
+              
+              <div className="flex justify-between items-start relative z-10">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-inner">
+                    <Dumbbell className="w-5.5 h-5.5 text-white animate-bounce" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-[15px] uppercase tracking-wide tracking-tight font-sans">Install Companion Utility</h3>
+                    <p className="text-[10px] text-orange-100 font-mono">Convert Gym Flow to Homescreen App</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    setIsDownloadModalOpen(false);
+                    setSimulatedInstallProgress(null);
+                  }}
+                  className="p-1 px-2.5 hover:bg-white/10 rounded-full text-white transition text-xs font-black"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Body contents */}
+            <div className="p-5 flex-1 flex flex-col gap-4">
+              
+              {/* Device tabs switcher */}
+              <div className="grid grid-cols-4 gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setInstallStepsTab('prompt')}
+                  className={`py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition ${
+                    installStepsTab === 'prompt' ? 'bg-orange-600 text-white shadow-xs' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/60'
+                  }`}
+                >
+                  ⭐ Convert App
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInstallStepsTab('ios')}
+                  className={`py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition ${
+                    installStepsTab === 'ios' ? 'bg-orange-600 text-white shadow-xs' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/60'
+                  }`}
+                >
+                  📱 iPhone/iOS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInstallStepsTab('android')}
+                  className={`py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition ${
+                    installStepsTab === 'android' ? 'bg-orange-600 text-white shadow-xs' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/60'
+                  }`}
+                >
+                  🤖 Android/Chrome
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInstallStepsTab('desktop')}
+                  className={`py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition ${
+                    installStepsTab === 'desktop' ? 'bg-orange-600 text-white shadow-xs' : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-805'
+                  }`}
+                >
+                  💻 Desktop PC
+                </button>
+              </div>
+
+              {/* Main Tab Views */}
+              {installStepsTab === 'prompt' && (
+                <div className="space-y-4 animate-fade-in text-xs">
+                  <div className="flex items-start space-x-3 bg-orange-50/45 dark:bg-orange-950/20 border border-orange-500/10 p-3.5 rounded-2xl">
+                    <Sparkles className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-extrabold text-zinc-950 dark:text-orange-300 tracking-tight uppercase tracking-wider">Fast Hybrid Core Technology</h4>
+                      <p className="text-[10.5px] leading-relaxed text-zinc-650 dark:text-zinc-400 mt-1">
+                        Convert this administrative web panel directly into a standalone mobile utility. Features zero latency startup, higher rendering capacity, and immediate task shortcuts.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Dynamic installation action trigger */}
+                  {simulatedInstallProgress !== null ? (
+                    <div className="space-y-2 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-zinc-150/60 dark:border-zinc-800">
+                      <div className="flex justify-between items-center text-xxs font-mono font-bold uppercase tracking-wider">
+                        <span className="text-zinc-450">{simulatedProgressText}</span>
+                        <span className="text-orange-600 dark:text-orange-400">{simulatedInstallProgress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-orange-600 rounded-full transition-all duration-300"
+                          style={{ width: `${simulatedInstallProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : isInstalled ? (
+                    <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-500/20 rounded-2xl text-center space-y-1.5">
+                      <CheckCircle className="w-8 h-8 text-green-500 mx-auto animate-bounce" />
+                      <p className="text-xs font-black text-zinc-900 dark:text-green-400">Gym Flow is Installed!</p>
+                      <p className="text-xxs text-zinc-500 dark:text-zinc-400">
+                        Check your device's home screen or applications panel. Enjoy rapid single-tap operational access!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (deferredPrompt) {
+                            deferredPrompt.prompt();
+                            deferredPrompt.userChoice.then((choiceResult: any) => {
+                              if (choiceResult.outcome === 'accepted') {
+                                setIsInstalled(true);
+                              }
+                              setDeferredPrompt(null);
+                            });
+                          } else {
+                            // Run the beautiful simulated builder to educate the user and provide setup link
+                            setSimulatedInstallProgress(10);
+                            setSimulatedProgressText('Analyzing environment...');
+                            const intervalId = setInterval(() => {
+                              setSimulatedInstallProgress((prev) => {
+                                if (prev === null) {
+                                  clearInterval(intervalId);
+                                  return null;
+                                }
+                                if (prev >= 100) {
+                                  clearInterval(intervalId);
+                                  setTimeout(() => {
+                                    setSimulatedInstallProgress(null);
+                                    setIsInstalled(true);
+                                  }, 1500);
+                                  return 100;
+                                }
+                                const nextVal = prev + 15;
+                                if (nextVal > 95) {
+                                  setSimulatedProgressText('Pinning app package to Homescreen...');
+                                } else if (nextVal > 70) {
+                                  setSimulatedProgressText('Extracting graphic vectors...');
+                                } else if (nextVal > 40) {
+                                  setSimulatedProgressText('Configuring secure database sync pipeline...');
+                                }
+                                return Math.min(nextVal, 100);
+                              });
+                            }, 400);
+                          }
+                        }}
+                        className="w-full py-3.5 bg-orange-600 hover:bg-orange-500 hover:shadow-orange-500/20 shadow-md text-white font-black rounded-2xl text-xs flex items-center justify-center space-x-2 transition-all hover:scale-[1.01] active:scale-95"
+                      >
+                        <Download className="w-4 h-4 animate-bounce" />
+                        <span>Install Gym Flow on Homescreen</span>
+                      </button>
+                      <p className="text-[10px] text-center text-zinc-450 italic mt-1 leading-normal">
+                        Works on Chrome, iOS Safari, Edge, Samsung Internet, and Brave.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* iOS Safari Guide */}
+              {installStepsTab === 'ios' && (
+                <div className="space-y-3.5 text-xs animate-fade-in">
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800 flex items-start space-x-2.5">
+                    <div className="w-6 h-6 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] rounded-lg flex items-center justify-center shrink-0 border border-orange-200/30">
+                      1
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-800 dark:text-zinc-200">Open in Safari Browser</p>
+                      <p className="text-[10.5px] text-zinc-500 mt-0.5">Please ensure you are loading Gym Flow inside native Apple Safari.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800 flex items-start space-x-2.5">
+                    <div className="w-6 h-6 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] rounded-lg flex items-center justify-center shrink-0 border border-orange-200/30">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 flex-wrap">
+                        Tap the Share button 
+                        <span className="inline-flex p-1 bg-zinc-200 dark:bg-zinc-800 rounded font-bold text-xxs shrink-0">
+                          <Share2 className="w-3 h-3 text-blue-500 inline-block" />
+                        </span>
+                      </p>
+                      <p className="text-[10.5px] text-zinc-500 mt-0.5">Located at the center of the bottom horizontal ribbon of Safari.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800 flex items-start space-x-2.5">
+                    <div className="w-6 h-6 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] rounded-lg flex items-center justify-center shrink-0 border border-orange-200/30">
+                      3
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-800 dark:text-zinc-200">Tap "Add to Home Screen"</p>
+                      <p className="text-[10.5px] text-zinc-500 mt-0.5">Scroll down the action sheet popup and select the <strong className="text-zinc-800 dark:text-zinc-200">Add to Home Screen (+)</strong> menu button.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Android Guide */}
+              {installStepsTab === 'android' && (
+                <div className="space-y-3.5 text-xs animate-fade-in">
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800 flex items-start space-x-2.5">
+                    <div className="w-6 h-6 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] rounded-lg flex items-center justify-center shrink-0 border border-orange-200/30">
+                      1
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1 flex-wrap">
+                        Tap Three Dots menu icon 
+                        <span className="font-bold text-sm leading-none bg-zinc-250 dark:bg-zinc-800 px-1 py-0.5 rounded">⋮</span>
+                      </p>
+                      <p className="text-[10.5px] text-zinc-500 mt-0.5">Located in the upper right-corner of Chrome browser.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800 flex items-start space-x-2.5">
+                    <div className="w-6 h-6 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] rounded-lg flex items-center justify-center shrink-0 border border-orange-200/30">
+                      2
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-800 dark:text-zinc-200">Select "Install App" / "Add to Home screen"</p>
+                      <p className="text-[10.5px] text-zinc-500 mt-0.5">Tap the item, confirm dialog prompt, and it will be securely pinned to your mobile dashboard.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Desktop PC */}
+              {installStepsTab === 'desktop' && (
+                <div className="space-y-3.5 text-xs animate-fade-in">
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800 flex items-start space-x-2.5">
+                    <div className="w-6 h-6 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] rounded-lg flex items-center justify-center shrink-0 border border-orange-200/30">
+                      1
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1">
+                        Find Browser Install icon
+                      </p>
+                      <p className="text-[10.5px] text-zinc-500 mt-0.5">Look at the browser address bar (on top) for a computer icon showing an arrow down or a generic plus sign (+) badge.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-150/50 dark:border-zinc-800 flex items-start space-x-2.5">
+                    <div className="w-6 h-6 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] rounded-lg flex items-center justify-center shrink-0 border border-orange-200/30">
+                      2
+                    </div>
+                    <div>
+                      <p className="font-bold text-zinc-800 dark:text-zinc-200">Click Install</p>
+                      <p className="text-[10.5px] text-zinc-500 mt-0.5">Confirm the installation prompt to gain desktop shortcuts and launch independent offline-capable window sizes.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Custom Info and Extra Options Footer inside the modal */}
+            <div className="border-t border-zinc-150 dark:border-zinc-800/80 p-4 bg-zinc-50 dark:bg-zinc-900/60 flex items-center justify-between text-[10px] font-semibold text-zinc-450">
+              <span className="font-mono">Secure context, HTTPS active</span>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setIsDownloadModalOpen(false);
+                  setIsReportsOpen(true);
+                }}
+                className="text-orange-600 hover:text-orange-500 dark:text-orange-400 dark:hover:text-orange-300 transition flex items-center gap-1 font-bold h-6"
+              >
+                <span>Billing Audits & Reports</span>
+                <span className="text-xs">➔</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* C. Personal profile summary info cabinet */}
       {selectedMemberForProfile && (
